@@ -26,7 +26,16 @@ const NinaflixSplash = {
       this.laugh.currentTime = 0;
       this.laugh.play().catch(() => {
         // Browser blocked autoplay — on Tizen this won't happen
-        console.log('[Ninaflix] Autoplay blocked, will retry on interaction');
+        // Fallback: play on first interaction
+        const retry = () => {
+          this.laugh.currentTime = 0;
+          this.laugh.play().catch(() => {});
+          document.removeEventListener('keydown', retry);
+          document.removeEventListener('click', retry);
+        };
+        document.addEventListener('keydown', retry, { once: true });
+        document.addEventListener('click', retry, { once: true });
+        console.log('[Ninaflix] Autoplay blocked, will play on first interaction');
       });
     }
   },
