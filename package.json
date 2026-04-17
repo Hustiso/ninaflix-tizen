@@ -1,7 +1,22 @@
 {
-  "name": "ninaflix-bridge",
+  "name": "ninaflix-tizen",
   "version": "1.0.0",
-  "description": "Direct streaming bridge for Ninaflix — no torrents",
+  "description": "Premium streaming app for Samsung Tizen TV",
+  "packageType": "app",
+  "appName": "Ninaflix",
+  "appPath": "index.html",
+  "keys": [
+    "MediaPlay",
+    "MediaPause",
+    "MediaPlayPause",
+    "MediaFastForward",
+    "MediaRewind",
+    "MediaStop",
+    "ColorF0Red",
+    "ColorF1Green",
+    "ColorF2Yellow",
+    "ColorF3Blue"
+  ],
   "main": "bridge/bridge.js",
   "scripts": {
     "start": "node bridge/bridge.js"

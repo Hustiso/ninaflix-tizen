@@ -1,0 +1,61 @@
+/* ═══ SPLASH ═══ */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity .8s ease, transform .8s ease;
+}
+#splash.out { opacity: 0; transform: scale(1.1); pointer-events: none; }
+
+.splash-face {
+  width: 320px; height: 320px; object-fit: contain;
+  animation: splashDance .8s cubic-bezier(.36,.07,.19,.97) infinite;
+  filter: drop-shadow(0 0 80px rgba(255,107,107,.4));
+}
+@keyframes splashDance {
+  0% { transform: translate(0,0) rotate(0deg) scale(1); }
+  10% { transform: translate(-6px,-18px) rotate(-4deg) scale(1.06); }
+  20% { transform: translate(8px,-8px) rotate(5deg) scale(.97); }
+  30% { transform: translate(-4px,-22px) rotate(-3deg) scale(1.08); }
+  40% { transform: translate(6px,-5px) rotate(4deg) scale(.98); }
+  50% { transform: translate(-2px,-15px) rotate(-2deg) scale(1.04); }
+  60% { transform: translate(4px,-3px) rotate(2deg) scale(1); }
+  70% { transform: translate(-3px,-12px) rotate(-1deg) scale(1.02); }
+  80% { transform: translate(2px,-6px) rotate(1deg) scale(1.01); }
+  90% { transform: translate(-1px,-2px) rotate(0deg) scale(1); }
+  100% { transform: translate(0,0) rotate(0deg) scale(1); }
+}
+
+.splash-ring {
+  position: absolute; width: 380px; height: 380px; border-radius: 50%;
+  border: 2px solid rgba(255,107,107,.15);
+  animation: ringExpand 1.5s ease-out forwards;
+}
+.splash-ring:nth-child(2) { animation-delay: .3s; border-color: rgba(255,107,107,.1); }
+.splash-ring:nth-child(3) { animation-delay: .6s; border-color: rgba(255,107,107,.06); }
+@keyframes ringExpand { from { transform: scale(.5); opacity: 1; } to { transform: scale(2.5); opacity: 0; } }
+
+.splash-title {
+  margin-top: 40px; font-size: 64px; font-weight: 900; letter-spacing: -3px;
+  opacity: 0; animation: slideUp .7s .1s cubic-bezier(.16,1,.3,1) forwards;
+}
+.splash-title span { color: var(--co); }
+.splash-sub {
+  font-size: 14px; color: var(--t3); letter-spacing: 4px; text-transform: uppercase;
+  margin-top: 8px; opacity: 0; animation: slideUp .6s .35s ease forwards;
+}
+.splash-bar {
+  margin-top: 44px; width: 240px; height: 3px; background: rgba(255,255,255,.04);
+  border-radius: 3px; overflow: hidden; opacity: 0; animation: slideUp .5s .6s ease forwards;
+}
+.splash-bar div {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--co), var(--co2));
+  border-radius: 3px; animation: barFill 1.8s .8s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes barFill { to { width: 100%; } }
+
+/* ═══ APP ═══ */
+#app { opacity: 0; transition: opacity .8s ease; }
+#app.show { opacity: 1; }
