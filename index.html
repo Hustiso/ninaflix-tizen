@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ninaflix</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- CSS Modules -->
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/tv.css">
+</head>
+<body>
+
+<!-- AUDIO -->
+<audio id="laugh" preload="auto">
+  <source src="assets/sounds/laugh.mp3" type="audio/mpeg">
+  <source src="assets/sounds/laugh.ogg" type="audio/ogg">
+</audio>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-ring"></div>
+  <div class="splash-ring"></div>
+  <div class="splash-ring"></div>
+  <img class="splash-face" src="assets/nina.png" alt="Nina">
+  <div class="splash-title">nina<span>flix</span></div>
+  <div class="splash-sub">made with love</div>
+  <div class="splash-bar"><div></div></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<nav>
+  <div class="nav-l">
+    <a class="nav-logo" href="#">
+      <img src="assets/nina.png" alt="">
+      <b>nina<span>flix</span></b>
+    </a>
+    <div class="nav-links">
+      <a href="#" class="on">Home</a>
+      <a href="#">Movies</a>
+      <a href="#">Series</a>
+      <a href="#">My List</a>
+      <a href="#">Search</a>
+    </div>
+  </div>
+  <div class="nav-r">
+    <span class="name">nina</span>
+    <img src="assets/nina.png" alt="">
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg" id="hero-bg"></div>
+  <div class="hero-g"></div>
+  <img class="hero-nina" src="assets/nina.png" alt="">
+  <div class="hero-content">
+    <div class="hero-badge">★ Featured</div>
+    <h1 class="hero-title" id="hero-title">Loading...</h1>
+    <div class="hero-meta" id="hero-meta"></div>
+    <p class="hero-desc" id="hero-desc">Discovering the best content for you...</p>
+    <div class="hero-actions">
+      <button class="btn btn-play" onclick="NinaflixUI.onPlayHero()">▶ Play</button>
+      <button class="btn btn-info">+ My List</button>
+      <button class="btn btn-info">ℹ Info</button>
+      <span class="quality-tag"><span class="dot">●</span> 4K HDR</span>
+    </div>
+    <div class="hero-status">
+      <span class="live"></span>
+      Auto-play verified • Best quality selected
+    </div>
+  </div>
+</section>
+
+<!-- CONTINUE WATCHING -->
+<div class="sec" id="section-continue">
+  <div class="sec-head">
+    <h2 class="sec-title">Continue Watching</h2>
+    <a href="#" class="sec-link">See all</a>
+  </div>
+  <div class="row" id="continue-row"></div>
+</div>
+
+<!-- SPOTLIGHT -->
+<div class="spotlight">
+  <div class="spot-card">
+    <img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=800&q=80" alt="">
+    <div class="spot-overlay">
+      <h3>Top Picks For You</h3>
+      <p>Personalized recommendations</p>
+      <span class="badge badge-new">New</span>
+    </div>
+  </div>
+  <div class="spot-card">
+    <img src="https://images.unsplash.com/photo-1535016120720-40c646be5580?w=800&q=80" alt="">
+    <div class="spot-overlay">
+      <h3>Trending This Week</h3>
+      <p>Most watched on ninaflix</p>
+      <span class="badge badge-trending">Trending</span>
+    </div>
+  </div>
+</div>
+
+<!-- GENRES -->
+<div class="pills">
+  <button class="pill on">All</button>
+  <button class="pill">Action</button>
+  <button class="pill">Comedy</button>
+  <button class="pill">Drama</button>
+  <button class="pill">Sci-Fi</button>
+  <button class="pill">Horror</button>
+  <button class="pill">Animation</button>
+  <button class="pill">Family</button>
+  <button class="pill">Documentary</button>
+</div>
+
+<!-- DYNAMIC CATALOG ROWS (populated by JS) -->
+<div id="catalog-container"></div>
+
+<footer>
+  <img src="assets/nina.png" alt="">
+  <p>ninaflix <span class="heart">♥</span> made with love • Tizen Edition</p>
+</footer>
+
+</div>
+
+<!-- JS Modules -->
+<script src="js/services/storage.js"></script>
+<script src="js/api/addons.js"></script>
+<script src="js/engine/collector.js"></script>
+<script src="js/engine/autodrive.js"></script>
+<script src="js/player/avplay.js"></script>
+<script src="js/ui/home.js"></script>
+<script src="js/ui/splash.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets"
+        xmlns:tizen="http://tizen.org/ns/widgets"
+        id="http://ninaflix.tv/app"
+        version="1.0.0"
+        viewmodes="maximized">
+
+  <name>Ninaflix</name>
+  <description>Premium streaming for Samsung Tizen TV. Made with love.</description>
+  <author href="https://github.com/Hustiso" email="ninaflix@ninaflix.tv">Ninaflix</author>
+
+  <icon src="assets/icon.png"/>
+  <content src="index.html" type="text/html"/>
+
+  <tizen:app-control>
+    <tizen:srcname>http://tizen.org/appcontrol/operation/view</tizen:srcname>
+    <tizen:operation name="http://tizen.org/appcontrol/operation/view"/>
+  </tizen:app-control>
+
+  <tizen:application appid="ninaflix.tv"
+                     exec="ninaflix"
+                     nodisplay="false"
+                     taskmanage="true"
+                     type="dotnet"/>
+
+  <tizen:privilege name="http://tizen.org/privilege/internet"/>
+  <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+  <tizen:privilege name="http://tizen.org/privilege/tv.audio"/>
+  <tizen:privilege name="http://tizen.org/privilege/tv.display"/>
+  <tizen:privilege name="http://tizen.org/privilege/network.get"/>
+
+  <tizen:profile name="tv"/>
+
+  <tizen:setting screen-orientation="landscape"
+                 context-menu="disable"
+                 background-support="disable"
+                 encryption="disable"
+                 install-location="internal-only"/>
+
+  <access origin="*" subdomains="true">
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+  </access>
+
+  <!-- CSP: allow external content from providers -->
+  <tizen:content-security-policy>
+    default-src 'self' * data: blob:;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' * data:;
+    media-src 'self' * blob:;
+    connect-src 'self' *;
+    font-src 'self' data:;
+  </tizen:content-security-policy>
+
+</widget>
