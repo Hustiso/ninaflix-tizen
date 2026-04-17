@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: ninaflix-bridge
+    runtime: node
+    buildCommand: cd bridge && npm install
+    startCommand: cd bridge && node bridge.js
+    envVars:
+      - key: PORT
+        value: 3000
+    autoDeploy: true
