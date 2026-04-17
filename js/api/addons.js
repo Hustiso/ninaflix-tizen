@@ -28,12 +28,26 @@ const NinaflixAddons = {
   },
 
   async fetchManifest(baseUrl) {
-    // Stremio addon manifest is at {baseUrl}/manifest.json
-    const manifestUrl = baseUrl.replace(/\/catalog\/.*/, '/manifest.json');
+    // Stremio addon manifest can be at {baseUrl}/manifest.json
+    // Or the URL might already point to a catalog endpoint
+    let manifestUrl;
+    if (baseUrl.includes('/manifest.json')) {
+      manifestUrl = baseUrl;
+    } else if (baseUrl.includes('/catalog/')) {
+      manifestUrl = baseUrl.replace(/\/catalog\/.*/, '/manifest.json');
+    } else {
+      // Base URL — append manifest.json
+      manifestUrl = baseUrl.replace(/\/+$/, '') + '/manifest.json';
+    }
     try {
       const res = await fetch(manifestUrl);
       if (!res.ok) return null;
       const data = await res.json();
+      // Ensure url field is set for stream/catalog fetching
+      if (!data.url) {
+        // Derive base URL from the addon URL
+        data.url = manifestUrl.replace(/\/manifest\.json$/, '');
+      }
       return data;
     } catch { return null; }
   },

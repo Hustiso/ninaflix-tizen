@@ -216,11 +216,24 @@ const NinaflixDetail = {
     const item = Ninaflix.state.currentItem;
     if (!item) return;
     this.close();
+    Ninaflix.toast('Finding best stream...');
     const stream = await NinaflixAutoPlay.play(item.type, item.id, item.meta?.title || item.meta?.name);
     if (stream) {
+      // Fetch subtitles
+      NinaflixSubs.enabled = true;
+      NinaflixSubs.fetch(item.id, item.type).then(subs => {
+        if (subs.length > 0) {
+          NinaflixSubs.download(subs[0]).then(parsed => {
+            if (parsed) NinaflixSubs.currentSubs = parsed;
+          });
+        }
+      });
+
       NinaflixPlayer.init();
-      await NinaflixPlayer.play(stream, item.meta?.title || item.meta?.name);
+      await NinaflixPlayer.play(stream, item.meta?.title || item.meta?.name, NinaflixEngine.lastRanked || []);
       NinaflixHUD.show(stream, item.meta?.title || item.meta?.name);
+    } else {
+      Ninaflix.toast('No streams available');
     }
   },
 
@@ -230,11 +243,24 @@ const NinaflixDetail = {
     this.close();
     const imdbId = item.id;
     const title = `${item.meta?.name || ''} S${season}E${episode}`;
+    Ninaflix.toast('Finding best stream...');
     const stream = await NinaflixAutoPlay.play('series', `${imdbId}:${season}:${episode}`, title);
     if (stream) {
+      // Fetch subtitles for episode
+      NinaflixSubs.enabled = true;
+      NinaflixSubs.fetch(imdbId, 'series', season, episode).then(subs => {
+        if (subs.length > 0) {
+          NinaflixSubs.download(subs[0]).then(parsed => {
+            if (parsed) NinaflixSubs.currentSubs = parsed;
+          });
+        }
+      });
+
       NinaflixPlayer.init();
-      await NinaflixPlayer.play(stream, title);
+      await NinaflixPlayer.play(stream, title, NinaflixEngine.lastRanked || []);
       NinaflixHUD.show(stream, title);
+    } else {
+      Ninaflix.toast('No streams available');
     }
   },
 

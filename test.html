@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ninaflix — Browser Test Harness</title>
+<style>
+  body { background: #0a0a0a; color: #f5f5f5; font-family: monospace; padding: 20px; }
+  h1 { color: #ff6b6b; margin-bottom: 16px; }
+  .test { padding: 8px 12px; margin: 4px 0; border-radius: 6px; }
+  .pass { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+  .fail { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
+  .info { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
+  #results { max-width: 800px; }
+  button { background: #ff6b6b; color: #fff; border: none; padding: 10px 20px; border-radius: 8px;
+    cursor: pointer; font-family: inherit; font-size: 14px; margin: 8px 4px; }
+  button:hover { background: #ff8a8a; }
+  .section { margin: 20px 0; padding: 16px; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Ninaflix — Browser Test Harness</h1>
+<p>Tests app logic without Tizen hardware. Loads all modules and validates wiring.</p>
+
+<div class="section">
+  <h3>Run Tests</h3>
+  <button onclick="runAllTests()">Run All Tests</button>
+  <button onclick="testAddonLoad()">Test Addon Load</button>
+  <button onclick="testCatalogRender()">Test Catalog Render</button>
+  <button onclick="testToast()">Test Toast</button>
+  <button onclick="window.open('index.html')">Open App</button>
+</div>
+
+<div id="results"></div>
+
+<!-- Load Ninaflix modules -->
+<script src="js/services/storage.js"></script>
+<script src="js/api/addons.js"></script>
+<script src="js/api/tmdb.js"></script>
+<script src="js/api/trakt.js"></script>
+<script src="js/engine/collector.js"></script>
+<script src="js/engine/autodrive.js"></script>
+<script src="js/player/avplay.js"></script>
+<script src="js/player/subtitles.js"></script>
+<script src="js/player/hud.js"></script>
+<script src="js/ui/home.js"></script>
+<script src="js/ui/detail.js"></script>
+<script src="js/ui/search.js"></script>
+<script src="js/ui/settings.js"></script>
+<script src="js/ui/kids.js"></script>
+<script src="js/ui/splash.js"></script>
+<script src="js/main.js"></script>
+
+<script>
+const results = document.getElementById('results');
+
+function log(msg, status) {
+  const div = document.createElement('div');
+  div.className = 'test ' + status;
+  div.textContent = (status === 'pass' ? 'PASS' : status === 'fail' ? 'FAIL' : 'INFO') + ' | ' + msg;
+  results.appendChild(div);
+}
+
+async function runAllTests() {
+  results.innerHTML = '';
+
+  // 1. Module loading
+  log('Testing module loading...', 'info');
+  testModules();
+
+  // 2. Storage
+  log('Testing storage...', 'info');
+  testStorage();
+
+  // 3. Addon loading
+  log('Testing addon loading...', 'info');
+  await testAddonLoad();
+
+  // 4. Quality parsing
+  log('Testing quality parsing...', 'info');
+  testQualityParsing();
+
+  // 5. Subtitle parsing
+  log('Testing subtitle parsing...', 'info');
+  testSubtitleParsing();
+
+  // 6. UI wiring
+  log('Testing UI wiring...', 'info');
+  testUIWiring();
+
+  log('All tests complete.', 'info');
+}
+
+function testModules() {
+  const modules = ['Ninaflix', 'NinaflixStorage', 'NinaflixAddons', 'NinaflixTMDB',
+    'NinaflixTrakt', 'NinaflixEngine', 'NinaflixAutoPlay', 'NinaflixPlayer',
+    'NinaflixHUD', 'NinaflixSubs', 'NinaflixUI', 'NinaflixDetail',
+    'NinaflixSearch', 'NinaflixSettings', 'NinaflixKids', 'NinaflixSplash'];
+  let pass = 0;
+  for (const m of modules) {
+    if (window[m]) { pass++; }
+    else { log('Missing module: ' + m, 'fail'); }
+  }
+  log(`Modules: ${pass}/${modules.length} loaded`, pass === modules.length ? 'pass' : 'fail');
+}
+
+function testStorage() {
+  try {
+    NinaflixStorage.set('test_key', { foo: 'bar' });
+    const val = NinaflixStorage.get('test_key');
+    if (val && val.foo === 'bar') {
+      log('Storage get/set works', 'pass');
+    } else {
+      log('Storage get/set failed', 'fail');
+    }
+    NinaflixStorage.remove('test_key');
+
+    const settings = NinaflixStorage.getSettings();
+    log('Settings loaded: quality=' + settings.quality + ', subs=' + settings.subtitles, 'pass');
+  } catch (e) {
+    log('Storage error: ' + e.message, 'fail');
+  }
+}
+
+async function testAddonLoad() {
+  try {
+    await NinaflixAddons.load();
+    const count = Object.keys(NinaflixAddons.manifestCache).length;
+    if (count > 0) {
+      log(`Addons loaded: ${count}`, 'pass');
+      for (const [id, manifest] of Object.entries(NinaflixAddons.manifestCache)) {
+        log(`  Addon: ${manifest.name || id} (${(manifest.catalogs || []).length} catalogs)`, 'info');
+      }
+    } else {
+      log('No addons loaded (network issue or API down)', 'fail');
+    }
+  } catch (e) {
+    log('Addon load error: ' + e.message, 'fail');
+  }
+}
+
+function testQualityParsing() {
+  const tests = [
+    { input: 'Movie.2024.2160p.WEB-DL', expected: '4K' },
+    { input: 'Movie.2024.1080p.BluRay', expected: '1080p' },
+    { input: 'Movie.2024.720p.HDTV', expected: '720p' },
+    { input: 'Movie.2024.480p.DVD', expected: '480p' },
+    { input: 'Movie.2024.UHD.HDR', expected: '4K' },
+  ];
+  let pass = 0;
+  for (const t of tests) {
+    const result = NinaflixEngine.parseQuality(t.input);
+    if (result === t.expected) pass++;
+    else log(`Quality parse "${t.input}" → "${result}" (expected "${t.expected}")`, 'fail');
+  }
+  log(`Quality parsing: ${pass}/${tests.length}`, pass === tests.length ? 'pass' : 'fail');
+}
+
+function testSubtitleParsing() {
+  const srt = `1
+00:00:01,000 --> 00:00:03,000
+Hello world
+
+2
+00:00:04,000 --> 00:00:06,500
+This is a test`;
+
+  const parsed = NinaflixSubs.parseSRT(srt);
+  if (parsed.length === 2 && parsed[0].text === 'Hello world') {
+    log(`SRT parser: ${parsed.length} cues parsed`, 'pass');
+  } else {
+    log('SRT parser failed: got ' + JSON.stringify(parsed), 'fail');
+  }
+
+  const vtt = `WEBVTT
+
+00:00:01.000 --> 00:00:03.000
+VTT subtitle test`;
+
+  const vttParsed = NinaflixSubs.parseVTT(vtt);
+  if (vttParsed.length === 1) {
+    log(`VTT parser: ${vttParsed.length} cue parsed`, 'pass');
+  } else {
+    log('VTT parser failed', 'fail');
+  }
+}
+
+function testUIWiring() {
+  // Check that card click and hero play are real functions
+  if (typeof NinaflixUI.onCardClick === 'function' &&
+      NinaflixUI.onCardClick.toString().includes('NinaflixDetail.open')) {
+    log('Card click → Detail wired', 'pass');
+  } else {
+    log('Card click not wired', 'fail');
+  }
+
+  if (typeof NinaflixUI.playHero === 'function' &&
+      NinaflixUI.playHero.toString().includes('NinaflixAutoPlay')) {
+    log('Hero play → AutoPlay wired', 'pass');
+  } else {
+    log('Hero play not wired', 'fail');
+  }
+
+  if (typeof NinaflixUI.showMyList === 'function') {
+    log('My List function exists', 'pass');
+  } else {
+    log('My List missing', 'fail');
+  }
+
+  if (typeof NinaflixSettings.addAddon === 'function') {
+    log('Settings Add Addon wired', 'pass');
+  } else {
+    log('Settings Add Addon missing', 'fail');
+  }
+
+  if (typeof NinaflixPlayer.tryNextStream === 'function') {
+    log('Player fallback exists', 'pass');
+  } else {
+    log('Player fallback missing', 'fail');
+  }
+
+  // Check toast system
+  if (typeof Ninaflix.toast === 'function') {
+    log('Toast system exists', 'pass');
+  } else {
+    log('Toast system missing', 'fail');
+  }
+}
+
+async function testCatalogRender() {
+  results.innerHTML = '';
+  await testAddonLoad();
+  log('Opening index.html to verify visual rendering...', 'info');
+  window.open('index.html', '_blank');
+}
+
+function testToast() {
+  if (typeof Ninaflix.toast === 'function') {
+    Ninaflix.toast('Toast system operational');
+    log('Toast triggered', 'pass');
+  } else {
+    log('Toast not available', 'fail');
+  }
+}
+</script>
+
+</body>
+</html>

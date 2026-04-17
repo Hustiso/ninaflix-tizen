@@ -3,6 +3,8 @@
 // ═══════════════════════════════════════════
 
 const NinaflixEngine = {
+
+  lastRanked: [], // Store last ranked list for player fallback
   
   // Collect streams from all addons, filter direct only
   async collect(type, imdbId) {
@@ -57,6 +59,9 @@ const NinaflixEngine = {
         _score: score
       };
     }).filter(Boolean).sort((a, b) => b._score - a._score);
+
+    this.lastRanked = ranked;
+    return ranked;
   },
 
   // Parse quality from stream name

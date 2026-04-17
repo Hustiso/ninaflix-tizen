@@ -177,6 +177,7 @@ const NinaflixHUD = {
   },
 
   bindKeys() {
+    // Keyboard
     document.addEventListener('keydown', (e) => {
       if (!NinaflixPlayer.isPlaying) return;
       this.showControls();
@@ -189,6 +190,41 @@ const NinaflixHUD = {
         case 'Backspace': NinaflixPlayer.stop(); this.hide(); break;
       }
     });
+
+    // Tizen remote keys
+    if (window.tizen && window.tizen.tvinputdevice) {
+      document.addEventListener('keydown', (e) => {
+        if (!NinaflixPlayer.isPlaying) return;
+        this.showControls();
+        switch (e.keyCode) {
+          case 415: // MediaPlay
+            NinaflixPlayer.resume();
+            document.getElementById('hud-play').textContent = '⏸';
+            break;
+          case 19: // MediaPause
+            NinaflixPlayer.pause();
+            document.getElementById('hud-play').textContent = '▶';
+            break;
+          case 413: // MediaStop
+            NinaflixPlayer.stop();
+            this.hide();
+            break;
+          case 102: // MediaFastForward
+            NinaflixPlayer.seek(NinaflixPlayer.getPosition() + 30000);
+            break;
+          case 100: // MediaRewind
+            NinaflixPlayer.seek(NinaflixPlayer.getPosition() - 10000);
+            break;
+          case 412: // MediaRewind (alternate code)
+            NinaflixPlayer.seek(NinaflixPlayer.getPosition() - 10000);
+            break;
+          case 10001: // Back
+            NinaflixPlayer.stop();
+            this.hide();
+            break;
+        }
+      });
+    }
   },
 
   fmtTime(ms) {

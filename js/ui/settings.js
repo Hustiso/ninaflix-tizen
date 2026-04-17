@@ -176,6 +176,47 @@ const NinaflixSettings = {
     document.getElementById('set-kids').onchange = (e) => {
       document.getElementById('kids-pin-row').style.display = e.target.checked ? 'flex' : 'none';
     };
+    document.getElementById('set-addon-add').onclick = () => this.addAddon();
+    document.getElementById('set-addon-url').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') this.addAddon();
+    });
+    document.getElementById('set-trakt-btn').onclick = () => this.connectTrakt();
+  },
+
+  async addAddon() {
+    const input = document.getElementById('set-addon-url');
+    const url = (input.value || '').trim();
+    if (!url) return;
+    try {
+      const manifest = await NinaflixAddons.add(url);
+      if (manifest) {
+        Ninaflix.toast('Added: ' + (manifest.name || manifest.id));
+        input.value = '';
+        this.loadCurrent();
+      } else {
+        Ninaflix.toast('Invalid addon URL');
+      }
+    } catch (e) {
+      Ninaflix.toast('Failed to add addon');
+    }
+  },
+
+  async connectTrakt() {
+    if (!NinaflixTrakt.CLIENT_ID) {
+      Ninaflix.toast('Set Trakt Client ID first');
+      return;
+    }
+    try {
+      Ninaflix.toast('Requesting Trakt code...');
+      const code = await NinaflixTrakt.requestCode();
+      if (code && code.user_code) {
+        Ninaflix.toast(`Go to ${code.verification_url} and enter: ${code.user_code}`, 10000);
+        await NinaflixTrakt.pollToken(code.device_code, code.interval || 5);
+        Ninaflix.toast('Trakt connected!');
+      }
+    } catch (e) {
+      Ninaflix.toast('Trakt connection failed');
+    }
   },
 
   open() {
