@@ -74,11 +74,7 @@ const NinaflixSettings = {
           </div>
           <div class="settings-row">
             <span>OpenSubtitles API Key</span>
-            <input type="text" id="set-os-key" placeholder="Optional — for higher limits" style="
-              background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);
-              color:#fff;padding:8px 12px;border-radius:var(--rs);font-family:'Poppins',sans-serif;
-              font-size:13px;width:200px;
-            ">
+            <span style="color:var(--gn);font-size:12px;">Pre-configured</span>
           </div>
         </div>
 
@@ -86,18 +82,14 @@ const NinaflixSettings = {
         <div class="settings-section">
           <h2 style="font-size:16px;font-weight:600;color:var(--co);margin-bottom:16px;letter-spacing:.5px;">INTEGRATIONS</h2>
           <div class="settings-row">
-            <span>Trakt</span>
-            <button id="set-trakt-btn" class="btn btn-info" style="padding:8px 16px;font-size:12px;">
-              Connect
-            </button>
+            <span>TMDB Metadata</span>
+            <span style="color:var(--gn);font-size:12px;">Pre-configured</span>
           </div>
           <div class="settings-row">
-            <span>TMDB API Key</span>
-            <input type="text" id="set-tmdb-key" placeholder="For metadata enrichment" style="
-              background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);
-              color:#fff;padding:8px 12px;border-radius:var(--rs);font-family:'Poppins',sans-serif;
-              font-size:13px;width:200px;
-            ">
+            <span>Trakt Sync</span>
+            <button id="set-trakt-btn" class="btn btn-info" style="padding:8px 16px;font-size:12px;">
+              Connect (Optional)
+            </button>
           </div>
         </div>
 
@@ -236,8 +228,6 @@ const NinaflixSettings = {
     document.getElementById('set-sub-size').value = s.subtitle_size || 'auto';
     document.getElementById('set-autoplay').checked = s.autoplay_next !== false;
     document.getElementById('set-kids').checked = s.kids_mode || false;
-    document.getElementById('set-tmdb-key').value = s.tmdb_key || '';
-    document.getElementById('set-os-key').value = s.opensubtitles_key || '';
 
     // Load addons
     const addons = NinaflixAddons.getInstalled();
@@ -258,13 +248,8 @@ const NinaflixSettings = {
       subtitle_size: document.getElementById('set-sub-size').value,
       autoplay_next: document.getElementById('set-autoplay').checked,
       kids_mode: document.getElementById('set-kids').checked,
-      tmdb_key: document.getElementById('set-tmdb-key').value,
-      opensubtitles_key: document.getElementById('set-os-key').value,
       ...(NinaflixStorage.getSettings()) // preserve other fields
     };
     NinaflixStorage.set('settings', settings);
-
-    // Init TMDB if key provided
-    if (settings.tmdb_key) NinaflixTMDB.init(settings.tmdb_key);
   }
 };

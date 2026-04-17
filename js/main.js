@@ -27,12 +27,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load settings
   const settings = NinaflixStorage.getSettings();
 
-  // Init TMDB if key available
-  if (settings.tmdb_key) {
-    NinaflixTMDB.init(settings.tmdb_key);
-  }
+  // Init TMDB (always — has default key)
+  NinaflixTMDB.init(settings.tmdb_key);
 
-  // Init Trakt
+  // Init Trakt (optional — works without auth)
   NinaflixTrakt.init();
 
   // Init Kids Mode

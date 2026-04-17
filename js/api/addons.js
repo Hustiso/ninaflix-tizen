@@ -5,7 +5,13 @@
 const NinaflixAddons = {
   DEFAULT_ADDONS: [
     'https://v3-cinemeta.strem.io/catalog/movie/top.json',
-    'https://v3-cinemeta.strem.io/catalog/series/top.json'
+    'https://v3-cinemeta.strem.io/catalog/series/top.json',
+    'https://cinemeta-live.strem.io/addon/com.stremio.cinemeta/manifest.json',
+    'https://opensubtitles-v3.strem.io/addon/manifest.json',
+    'https://addon.seedr.io/manifest.json',
+    'https://stremio-jackett.hybrid.up/reset/manifest.json',
+    'https://94c8cb9f702d-tv-addon.baby-beamup.club/manifest.json',
+    'https://5a5d7e0a5f118-stremio-netflix-catalog.baby-beamup.club/manifest.json'
   ],
 
   manifestCache: {},

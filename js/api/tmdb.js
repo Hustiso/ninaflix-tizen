@@ -5,14 +5,14 @@
 const NinaflixTMDB = {
   BASE: 'https://api.themoviedb.org/3',
   IMG: 'https://image.tmdb.org/t/p',
-  // API key — replace with your own or use env
-  KEY: '',
+  // Default public read token — works out of the box
+  KEY: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1OTNiYTFkYjRhOTRkYjdmYjIyOTgyZTU2NWYxNWYyZiIsIm5iZiI6MTcyOTc3MjU5NC42Mjk5OTk4LCJzdWIiOiI2NzFiNjdhMjZiOGZiOTgxNjg5OTQxMzAiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.f3P9YyTj6dYh7T3m7q8dTMFNnGXUkmLIBfUwVvKnPLk',
 
   cache: {},
 
   init(apiKey) {
-    this.KEY = apiKey || '';
-    console.log('[TMDB] ' + (this.KEY ? 'Configured' : 'No API key'));
+    if (apiKey) this.KEY = apiKey;
+    console.log('[TMDB] Configured');
   },
 
   async search(query, type = 'multi') {

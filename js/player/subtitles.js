@@ -4,6 +4,7 @@
 
 const NinaflixSubs = {
   OPENSUBTITLES: 'https://api.opensubtitles.com/api/v1',
+  OPENSUBTITLES_KEY: 'RPFZdVkRkJWjPK8DeExTGBTStkddrUrG',
   LANG: 'en', // Default English
   cache: {},
   currentSubs: [],
@@ -51,7 +52,7 @@ const NinaflixSubs = {
 
       const res = await fetch(`${this.OPENSUBTITLES}/subtitles?${params}`, {
         headers: {
-          'Api-Key': NinaflixStorage.getSettings().opensubtitles_key || '',
+          'Api-Key': this.OPENSUBTITLES_KEY || NinaflixStorage.getSettings().opensubtitles_key || '',
           'User-Agent': 'Ninaflix v1.0.0'
         }
       });
