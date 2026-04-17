@@ -9,6 +9,7 @@ const NinaflixUI = {
     this.bindNav();
     this.bindPills();
     this.bindHero();
+    this.bindDpad();
     this.loadHome();
   },
 
@@ -43,6 +44,64 @@ const NinaflixUI = {
     if (favBtn) {
       favBtn.onclick = () => this.toggleHeroFav();
     }
+  },
+
+  // D-pad spatial navigation for TV remote
+  bindDpad() {
+    document.addEventListener('keydown', (e) => {
+      // Skip if an overlay is open
+      if (NinaflixPlayer.isPlaying) return;
+      const detailOverlay = document.getElementById('detail-overlay');
+      if (detailOverlay && detailOverlay.style.display === 'block') return;
+      const searchOverlay = document.getElementById('search-overlay');
+      if (searchOverlay && searchOverlay.style.display === 'block') return;
+      const settingsOverlay = document.getElementById('settings-overlay');
+      if (settingsOverlay && settingsOverlay.style.display === 'block') return;
+
+      const focusable = Array.from(document.querySelectorAll(
+        '.nav-links a, .pill, .card, .btn, .spot-card'
+      )).filter(el => el.offsetParent !== null && el.style.display !== 'none');
+
+      if (focusable.length === 0) return;
+
+      const current = document.activeElement;
+      const idx = focusable.indexOf(current);
+
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
+          if (idx < 0) focusable[0].focus();
+          else focusable[(idx + 1) % focusable.length].focus();
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          if (idx < 0) focusable[focusable.length - 1].focus();
+          else focusable[(idx - 1 + focusable.length) % focusable.length].focus();
+          break;
+        case 'Enter':
+          if (current && typeof current.click === 'function') {
+            e.preventDefault();
+            current.click();
+          }
+          break;
+        case 'Backspace':
+        case 'Escape':
+          // Go back to home
+          e.preventDefault();
+          this.navigate('home');
+          break;
+      }
+    });
+
+    // Make cards and buttons focusable
+    const style = document.createElement('style');
+    style.textContent = `
+      .nav-links a, .pill, .card, .btn, .spot-card { outline: none; }
+      .nav-links a:focus, .pill:focus { color: var(--co); }
+    `;
+    document.head.appendChild(style);
   },
 
   navigate(screen) {
@@ -294,15 +353,28 @@ const NinaflixUI = {
 
   filterByGenre(genre) {
     console.log('[UI] Filter: ' + genre);
-    // Filter visible cards by genre tag
     const allCards = document.querySelectorAll('#catalog-container .card, .sec .row .card');
     const g = genre.toLowerCase();
     if (g === 'all') {
       allCards.forEach(c => c.style.display = '');
       return;
     }
-    // Genre filtering requires metadata — for now just log
-    Ninaflix.toast(`Filter: ${genre}`);
+    // Filter by genre metadata on cards
+    let shown = 0;
+    allCards.forEach(card => {
+      const cardGenres = (card.dataset.genres || '').toLowerCase();
+      if (cardGenres.includes(g)) {
+        card.style.display = '';
+        shown++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    if (shown === 0) {
+      // Fallback: show all if no genre data
+      allCards.forEach(c => c.style.display = '');
+      Ninaflix.toast(`Showing all (genre data loading)`);
+    }
   },
 
   renderCatalogRow(title, items, type) {
@@ -332,9 +404,10 @@ const NinaflixUI = {
     const year = item.year || '';
     const imdbRating = item.imdbRating || '';
     const itemType = item.type || type || 'movie';
+    const genres = (item.genres || []).join(',').toLowerCase();
 
     return `
-      <div class="card" data-id="${item.id || ''}" onclick="NinaflixUI.onCardClick('${item.id || ''}', '${itemType}')">
+      <div class="card" data-id="${item.id || ''}" data-genres="${this.escape(genres)}" onclick="NinaflixUI.onCardClick('${item.id || ''}', '${itemType}')">
         <div class="card-glow"></div>
         <img class="card-poster" src="${this.escape(poster)}" alt="${this.escape(name)}" onerror="this.style.background='var(--cd)'">
         <div class="card-info">

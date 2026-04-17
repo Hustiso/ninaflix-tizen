@@ -242,13 +242,14 @@ const NinaflixSettings = {
   },
 
   save() {
+    const current = NinaflixStorage.getSettings();
     const settings = {
+      ...current,
       quality: document.getElementById('set-quality').value,
       subtitles: document.getElementById('set-sub-lang').value,
       subtitle_size: document.getElementById('set-sub-size').value,
       autoplay_next: document.getElementById('set-autoplay').checked,
-      kids_mode: document.getElementById('set-kids').checked,
-      ...(NinaflixStorage.getSettings()) // preserve other fields
+      kids_mode: document.getElementById('set-kids').checked
     };
     NinaflixStorage.set('settings', settings);
   }

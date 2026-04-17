@@ -36,6 +36,7 @@
 <!-- Load Ninaflix modules -->
 <script src="js/services/storage.js"></script>
 <script src="js/api/addons.js"></script>
+<script src="js/api/nuvio.js"></script>
 <script src="js/api/tmdb.js"></script>
 <script src="js/api/trakt.js"></script>
 <script src="js/engine/collector.js"></script>
@@ -92,10 +93,11 @@ async function runAllTests() {
 }
 
 function testModules() {
-  const modules = ['Ninaflix', 'NinaflixStorage', 'NinaflixAddons', 'NinaflixTMDB',
-    'NinaflixTrakt', 'NinaflixEngine', 'NinaflixAutoPlay', 'NinaflixPlayer',
-    'NinaflixHUD', 'NinaflixSubs', 'NinaflixUI', 'NinaflixDetail',
-    'NinaflixSearch', 'NinaflixSettings', 'NinaflixKids', 'NinaflixSplash'];
+  const modules = ['Ninaflix', 'NinaflixStorage', 'NinaflixAddons', 'NinaflixNuvio',
+    'NinaflixTMDB', 'NinaflixTrakt', 'NinaflixEngine', 'NinaflixAutoPlay',
+    'NinaflixPlayer', 'NinaflixHUD', 'NinaflixSubs', 'NinaflixUI', 'NinaflixDetail',
+    'NinaflixSearch', 'NinaflixSettings', 'NinaflixKids', 'NinaflixSplash',
+    'NinaflixVoice'];
   let pass = 0;
   for (const m of modules) {
     if (window[m]) { pass++; }

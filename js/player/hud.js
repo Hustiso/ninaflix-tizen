@@ -102,6 +102,8 @@ const NinaflixHUD = {
     document.getElementById('hud-cc').onclick = () => this.toggleSubs();
     document.getElementById('hud-prev').onclick = () => NinaflixPlayer.seek(NinaflixPlayer.getPosition() - 10000);
     document.getElementById('hud-next').onclick = () => NinaflixPlayer.seek(NinaflixPlayer.getPosition() + 30000);
+    document.getElementById('hud-audio').onclick = () => this.cycleAudio();
+    document.getElementById('hud-quality-btn').onclick = () => this.cycleQuality();
   },
 
   show(stream, title) {
@@ -174,6 +176,37 @@ const NinaflixHUD = {
     const btn = document.getElementById('hud-cc');
     btn.style.opacity = enabled ? '1' : '.4';
     if (!enabled) this.updateSubtitle('');
+  },
+
+  cycleAudio() {
+    // AVPlay supports audio track switching
+    if (NinaflixPlayer.avplay) {
+      try {
+        const tracks = NinaflixPlayer.avplay.getTotalTrackInfo();
+        // Audio tracks are typically index 1+ (video is 0)
+        // For now, show available info
+        Ninaflix.toast('Audio tracks: use TV audio settings');
+      } catch {
+        Ninaflix.toast('Audio: default track');
+      }
+    } else {
+      Ninaflix.toast('Audio: default track');
+    }
+  },
+
+  cycleQuality() {
+    // Show quality of current stream and offer fallback
+    const stream = NinaflixPlayer.currentStream;
+    if (!stream) return;
+    const ranked = NinaflixPlayer.rankedStreams;
+    if (!ranked || ranked.length <= 1) {
+      Ninaflix.toast(`Quality: ${stream._quality || 'Auto'} (${stream._provider || 'unknown'})`);
+      return;
+    }
+    // Show ranked list as toast
+    const qualities = ranked.map(s => s._quality).filter(Boolean);
+    const unique = [...new Set(qualities)];
+    Ninaflix.toast(`Available: ${unique.join(', ')} | Current: ${stream._quality || 'Auto'}`);
   },
 
   bindKeys() {

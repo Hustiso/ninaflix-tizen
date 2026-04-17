@@ -147,9 +147,42 @@ const NinaflixPlayer = {
     // Auto-play next episode if enabled
     const settings = NinaflixStorage.getSettings();
     if (settings.autoplay_next && Ninaflix.state.currentItem?.type === 'tv') {
-      Ninaflix.toast('Auto-play next episode...');
-      // TODO: implement next episode logic
+      const item = Ninaflix.state.currentItem;
+      const meta = item.meta;
+      if (meta && item.id) {
+        // Parse current episode from the imdbId or state
+        const currentSeason = meta._currentSeason || 1;
+        const currentEpisode = meta._currentEpisode || 1;
+        const seasons = meta.seasons || [];
+        const currentSeasonData = seasons.find(s => s.season_number === currentSeason);
+
+        if (currentSeasonData) {
+          const nextEp = currentEpisode + 1;
+          if (nextEp <= currentSeasonData.episode_count) {
+            // Play next episode in same season
+            Ninaflix.toast('Playing next episode...');
+            meta._currentSeason = currentSeason;
+            meta._currentEpisode = nextEp;
+            NinaflixDetail.playEpisode(meta.id, currentSeason, nextEp);
+            return;
+          } else {
+            // Try next season
+            const nextSeasonNum = currentSeason + 1;
+            const nextSeasonData = seasons.find(s => s.season_number === nextSeasonNum);
+            if (nextSeasonData) {
+              Ninaflix.toast('Playing Season ' + nextSeasonNum + '...');
+              meta._currentSeason = nextSeasonNum;
+              meta._currentEpisode = 1;
+              NinaflixDetail.playEpisode(meta.id, nextSeasonNum, 1);
+              return;
+            }
+          }
+        }
+      }
+      Ninaflix.toast('Series complete');
     }
+    this.stop();
+    NinaflixHUD.hide();
   },
 
   onError(err) {

@@ -100,6 +100,7 @@ const NinaflixDetail = {
     document.getElementById('detail-close').onclick = () => this.close();
     document.getElementById('detail-play').onclick = () => this.play();
     document.getElementById('detail-fav').onclick = () => this.toggleFav();
+    document.getElementById('detail-trailer').onclick = () => this.playTrailer();
   },
 
   async open(imdbId, type) {
@@ -206,7 +207,12 @@ const NinaflixDetail = {
     // Bind episode clicks
     list.querySelectorAll('.episode-card').forEach(card => {
       card.onclick = () => {
-        const epNum = card.dataset.ep;
+        const epNum = parseInt(card.dataset.ep);
+        // Track current episode for auto-play
+        if (Ninaflix.state.currentItem?.meta) {
+          Ninaflix.state.currentItem.meta._currentSeason = seasonNum;
+          Ninaflix.state.currentItem.meta._currentEpisode = epNum;
+        }
         this.playEpisode(tvId, seasonNum, epNum);
       };
     });
@@ -269,6 +275,29 @@ const NinaflixDetail = {
     if (!item) return;
     const isFav = NinaflixStorage.toggleFavorite(item.id);
     document.getElementById('detail-fav').textContent = isFav ? '♥ In List' : '+ My List';
+  },
+
+  async playTrailer() {
+    const item = Ninaflix.state.currentItem;
+    if (!item?.meta?.videos?.results) {
+      Ninaflix.toast('No trailer available');
+      return;
+    }
+    const trailers = item.meta.videos.results.filter(v =>
+      v.type === 'Trailer' && v.site === 'YouTube'
+    );
+    if (trailers.length === 0) {
+      Ninaflix.toast('No trailer available');
+      return;
+    }
+    // Open YouTube trailer in browser (works on Tizen)
+    const trailerUrl = `https://www.youtube.com/watch?v=${trailers[0].key}`;
+    if (window.tizen && window.tizen.application) {
+      window.tizen.application.launch(trailerUrl);
+    } else {
+      window.open(trailerUrl, '_blank');
+    }
+    Ninaflix.toast('Opening trailer...');
   },
 
   close() {

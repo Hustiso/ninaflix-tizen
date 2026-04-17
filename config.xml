@@ -9,7 +9,7 @@
   <description>Premium streaming for Samsung Tizen TV. Made with love.</description>
   <author href="https://github.com/Hustiso" email="ninaflix@ninaflix.tv">Ninaflix</author>
 
-  <icon src="assets/icon.png"/>
+  <icon src="assets/nina.png"/>
   <content src="index.html" type="text/html"/>
 
   <tizen:app-control>
@@ -28,6 +28,8 @@
   <tizen:privilege name="http://tizen.org/privilege/tv.audio"/>
   <tizen:privilege name="http://tizen.org/privilege/tv.display"/>
   <tizen:privilege name="http://tizen.org/privilege/network.get"/>
+  <tizen:privilege name="http://tizen.org/privilege/mediastorage"/>
+  <tizen:privilege name="http://tizen.org/privilege/externalstorage"/>
 
   <tizen:profile name="tv"/>
 

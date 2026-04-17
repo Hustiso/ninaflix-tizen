@@ -4,16 +4,13 @@
 
 const NinaflixEngine = {
 
-  lastRanked: [], // Store last ranked list for player fallback
-  
+  lastRanked: [],
+
   // Collect streams from all addons, merge with nuvio if available
   async collect(type, imdbId) {
-    // Stremio addon streams
     const raw = await NinaflixAddons.fetchAllStreams(type, imdbId);
 
-    // Nuvio provider streams (if server is running)
     if (NinaflixNuvio.isConnected()) {
-      // Parse season:episode from imdbId if series
       let season, episode, cleanId = imdbId;
       if (type === 'series' && imdbId.includes(':')) {
         const parts = imdbId.split(':');
@@ -37,13 +34,12 @@ const NinaflixEngine = {
     if (!stream.url) return false;
     if (stream.url.startsWith('magnet:')) return false;
     if (stream.url.startsWith('torrent:')) return false;
-    // Direct HTTP/HTTPS
     return stream.url.startsWith('http://') || stream.url.startsWith('https://');
   },
 
   // Score and rank streams
   rank(streams, connectionMbps = 100) {
-    return streams.map(s => {
+    const scored = streams.map(s => {
       const quality = this.parseQuality(s.name || s.title || '');
       const qualityScore = this.qualityScore(quality);
       const providerDomain = this.extractDomain(s.url);
@@ -53,14 +49,11 @@ const NinaflixEngine = {
 
       if (providerBlocked) return null;
 
-      // Connection-based quality preference
       let qualityWeight = 0.4;
       let speedWeight = 0.4;
       if (connectionMbps >= 80) {
-        // Fast connection — prefer 4K
         qualityWeight = 0.5;
       } else if (connectionMbps < 25) {
-        // Slow connection — prefer speed/lower quality
         qualityWeight = 0.3;
         speedWeight = 0.5;
       }
@@ -77,8 +70,8 @@ const NinaflixEngine = {
       };
     }).filter(Boolean).sort((a, b) => b._score - a._score);
 
-    this.lastRanked = ranked;
-    return ranked;
+    this.lastRanked = scored;
+    return scored;
   },
 
   // Parse quality from stream name
