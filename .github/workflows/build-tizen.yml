@@ -1,0 +1,57 @@
+name: Build Tizen Package
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build .wgt package
+        run: |
+          # .wgt is a zip with specific Tizen structure
+          mkdir -p .buildResult
+          cp -r css js assets index.html config.xml .buildResult/
+          mkdir -p release
+          cd .buildResult && zip -r ../release/Ninaflix.wgt . && cd ..
+          echo "Package size: $(du -h release/Ninaflix.wgt | cut -f1)"
+
+      - name: Verify package
+        run: |
+          unzip -l release/Ninaflix.wgt | head -30
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ninaflix-wgt
+          path: release/Ninaflix.wgt
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Ninaflix v1.0.${{ github.run_number }}
+          files: release/Ninaflix.wgt
+          body: |
+            ## Ninaflix Tizen — Auto Build
+            
+            ### Install Methods
+            
+            **SDB (Developer Mode):**
+            ```
+            sdb connect <TV_IP>
+            sdb install Ninaflix.wgt
+            ```
+            
+            **Tizen CLI:**
+            ```
+            tizen install -n Ninaflix.wgt
+            ```
+            
+            See README.md for full instructions.

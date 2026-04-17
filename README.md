@@ -21,22 +21,37 @@ Premium streaming app for Samsung Tizen TV (6-9). Ultra lightweight (<200KB).
 
 ## Installation
 
-### Option 1: TizenBrew
-```
-Add module: Hustiso/ninaflix-tizen
-```
+### Option 1: TizenBrew (Easiest — No PC Required)
+1. Install [TizenBrew](https://github.com/nicedayzhu/tizenbrew) on your Samsung TV
+2. Open TizenBrew → Add Module
+3. Enter: `Hustiso/ninaflix-tizen`
+4. Launch Ninaflix from TizenBrew
 
-### Option 2: Sideload .wgt
-```bash
-# Enable Developer Mode on TV
-# Build:
-tizen build-web
-tizen package -t wgt -o ./release -- .buildResult
-tizen install -n ./release/Ninaflix.wgt
-```
+### Option 2: Sideload from PC (Developer Mode)
+1. **Enable Developer Mode on TV:**
+   - Open Apps on TV
+   - Press `1 2 3 4 5` on the remote number pad
+   - Set your PC's IP address, port `26101`
+   - TV reboots in Developer Mode
+2. **Install:**
+   ```bash
+   # Windows:
+   push-to-tv.bat <TV_IP>
+   
+   # Or manually:
+   sdb connect <TV_IP>
+   # Build and install:
+   tizen build-web
+   tizen package -t wgt -o ./release -- .buildResult
+   tizen install -n ./release/Ninaflix.wgt
+   ```
 
-### Option 3: TizenBrew Installer
-Use [TizenBrewInstaller](https://github.com/reisxd/TizenBrewInstaller/releases/latest) for one-click install.
+### Option 3: Download Pre-built .wgt
+Check [GitHub Releases](https://github.com/Hustiso/ninaflix-tizen/releases) for auto-built `.wgt` files.
+Download and sideload via SDB or Tizen CLI.
+
+### Option 4: Browser Test (No TV Needed)
+Open `test.html` in any browser to run the test harness, or open `index.html` directly to use the app (desktop/mobile, no Tizen required).
 
 ## Architecture
 
