@@ -190,6 +190,11 @@ const NinaflixPlayer = {
     this.stopSubtitleTick();
     Ninaflix.toast('Stream error — trying next source...');
 
+    // Mark current provider as failed
+    if (this.currentStream?._provider) {
+      NinaflixStorage.updateProviderHealth(this.currentStream._provider, false);
+    }
+
     // Try next stream in ranked list
     this.tryNextStream();
   },

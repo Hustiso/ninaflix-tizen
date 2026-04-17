@@ -86,9 +86,25 @@ const NinaflixSettings = {
             <span style="color:var(--gn);font-size:12px;">Pre-configured</span>
           </div>
           <div class="settings-row">
+            <span>Trakt Client ID</span>
+            <input type="text" id="set-trakt-id" placeholder="Optional" style="
+              background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);
+              color:#fff;padding:6px 10px;border-radius:var(--rs);font-family:'Poppins',sans-serif;
+              font-size:12px;width:200px;
+            ">
+          </div>
+          <div class="settings-row">
+            <span>Trakt Client Secret</span>
+            <input type="password" id="set-trakt-secret" placeholder="Optional" style="
+              background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);
+              color:#fff;padding:6px 10px;border-radius:var(--rs);font-family:'Poppins',sans-serif;
+              font-size:12px;width:200px;
+            ">
+          </div>
+          <div class="settings-row">
             <span>Trakt Sync</span>
             <button id="set-trakt-btn" class="btn btn-info" style="padding:8px 16px;font-size:12px;">
-              Connect (Optional)
+              ${NinaflixTrakt.isConnected() ? '✓ Connected' : 'Connect'}
             </button>
           </div>
         </div>
@@ -167,6 +183,13 @@ const NinaflixSettings = {
     document.getElementById('settings-close').onclick = () => this.close();
     document.getElementById('set-kids').onchange = (e) => {
       document.getElementById('kids-pin-row').style.display = e.target.checked ? 'flex' : 'none';
+      if (!e.target.checked) {
+        // Disabling kids mode
+        NinaflixKids.enabled = false;
+        const s = NinaflixStorage.getSettings();
+        s.kids_mode = false;
+        NinaflixStorage.set('settings', s);
+      }
     };
     document.getElementById('set-addon-add').onclick = () => this.addAddon();
     document.getElementById('set-addon-url').addEventListener('keydown', (e) => {
@@ -194,10 +217,15 @@ const NinaflixSettings = {
   },
 
   async connectTrakt() {
-    if (!NinaflixTrakt.CLIENT_ID) {
-      Ninaflix.toast('Set Trakt Client ID first');
+    const clientId = document.getElementById('set-trakt-id').value.trim();
+    const clientSecret = document.getElementById('set-trakt-secret').value.trim();
+    if (!clientId) {
+      Ninaflix.toast('Enter Trakt Client ID first');
       return;
     }
+    // Apply credentials
+    NinaflixTrakt.CLIENT_ID = clientId;
+    NinaflixTrakt.CLIENT_SECRET = clientSecret;
     try {
       Ninaflix.toast('Requesting Trakt code...');
       const code = await NinaflixTrakt.requestCode();
@@ -205,6 +233,7 @@ const NinaflixSettings = {
         Ninaflix.toast(`Go to ${code.verification_url} and enter: ${code.user_code}`, 10000);
         await NinaflixTrakt.pollToken(code.device_code, code.interval || 5);
         Ninaflix.toast('Trakt connected!');
+        document.getElementById('set-trakt-btn').textContent = '✓ Connected';
       }
     } catch (e) {
       Ninaflix.toast('Trakt connection failed');
@@ -228,6 +257,16 @@ const NinaflixSettings = {
     document.getElementById('set-sub-size').value = s.subtitle_size || 'auto';
     document.getElementById('set-autoplay').checked = s.autoplay_next !== false;
     document.getElementById('set-kids').checked = s.kids_mode || false;
+    if (s.kids_mode) {
+      document.getElementById('kids-pin-row').style.display = 'flex';
+    }
+    // Load existing PIN
+    const existingPin = NinaflixStorage.get('kids_pin', '');
+    if (existingPin) document.getElementById('set-kids-pin').value = existingPin;
+
+    // Load Trakt credentials
+    document.getElementById('set-trakt-id').value = s.trakt_client_id || '';
+    document.getElementById('set-trakt-secret').value = s.trakt_client_secret || '';
 
     // Load addons
     const addons = NinaflixAddons.getInstalled();
@@ -243,13 +282,23 @@ const NinaflixSettings = {
 
   save() {
     const current = NinaflixStorage.getSettings();
+    const kidsEnabled = document.getElementById('set-kids').checked;
+    const kidsPin = document.getElementById('set-kids-pin')?.value || '';
+
+    // Save kids PIN if enabling
+    if (kidsEnabled && kidsPin.length === 4) {
+      NinaflixKids.enable(kidsPin);
+    }
+
     const settings = {
       ...current,
       quality: document.getElementById('set-quality').value,
       subtitles: document.getElementById('set-sub-lang').value,
       subtitle_size: document.getElementById('set-sub-size').value,
       autoplay_next: document.getElementById('set-autoplay').checked,
-      kids_mode: document.getElementById('set-kids').checked
+      kids_mode: kidsEnabled,
+      trakt_client_id: document.getElementById('set-trakt-id').value.trim(),
+      trakt_client_secret: document.getElementById('set-trakt-secret').value.trim()
     };
     NinaflixStorage.set('settings', settings);
   }

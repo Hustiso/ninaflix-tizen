@@ -8,16 +8,20 @@ const NinaflixEngine = {
 
   // Collect streams from all addons, merge with nuvio if available
   async collect(type, imdbId) {
-    const raw = await NinaflixAddons.fetchAllStreams(type, imdbId);
+    let raw;
+    // Parse series format: tt1234567:1:5
+    let season, episode, cleanId = imdbId;
+    if (type === 'series' && imdbId.includes(':')) {
+      const parts = imdbId.split(':');
+      cleanId = parts[0];
+      season = parseInt(parts[1]);
+      episode = parseInt(parts[2]);
+      raw = await NinaflixAddons.fetchStreamsForSeries(cleanId, season, episode);
+    } else {
+      raw = await NinaflixAddons.fetchAllStreams(type, imdbId);
+    }
 
     if (NinaflixNuvio.isConnected()) {
-      let season, episode, cleanId = imdbId;
-      if (type === 'series' && imdbId.includes(':')) {
-        const parts = imdbId.split(':');
-        cleanId = parts[0];
-        season = parseInt(parts[1]);
-        episode = parseInt(parts[2]);
-      }
       const nuvioStreams = await NinaflixNuvio.fetchAllStreams(type, cleanId, season, episode);
       raw.push(...nuvioStreams);
       console.log(`[Engine] Nuvio returned ${nuvioStreams.length} streams`);

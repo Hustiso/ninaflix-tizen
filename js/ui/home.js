@@ -98,10 +98,21 @@ const NinaflixUI = {
     // Make cards and buttons focusable
     const style = document.createElement('style');
     style.textContent = `
-      .nav-links a, .pill, .card, .btn, .spot-card { outline: none; }
+      .nav-links a, .pill, .card, .btn, .spot-card { outline: none; tabindex: -1; }
       .nav-links a:focus, .pill:focus { color: var(--co); }
+      .card:focus { transform: scale(1.12) translateY(-8px); z-index: 5; }
+      .card:focus .card-glow { opacity: 1; }
+      .card:focus .card-title { color: var(--co); }
     `;
     document.head.appendChild(style);
+
+    // Set tabindex on dynamically created elements
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('.card:not([tabindex]), .pill:not([tabindex]), .spot-card:not([tabindex])').forEach(el => {
+        el.setAttribute('tabindex', '-1');
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   },
 
   navigate(screen) {
@@ -341,6 +352,9 @@ const NinaflixUI = {
         card.innerHTML = `
           <div class="card-glow"></div>
           <img class="card-poster" src="${poster}" alt="${this.escape(name)}" onerror="this.style.background='var(--cd)'">
+          <div class="card-progress">
+            <div class="card-progress-fill" style="width:${pct}%"></div>
+          </div>
           <div class="card-info">
             <div class="card-title">${this.escape(name)}</div>
             <div class="card-sub">${pct}% watched</div>
@@ -349,6 +363,55 @@ const NinaflixUI = {
         row.appendChild(card);
       } catch { /* skip */ }
     }
+  },
+
+  async showContinueWatchingAll() {
+    const progressItems = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('ninaflix_progress_')) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key));
+          if (data && data.imdbId) progressItems.push(data);
+        } catch { /* skip */ }
+      }
+    }
+    if (progressItems.length === 0) {
+      Ninaflix.toast('Nothing in Continue Watching');
+      return;
+    }
+
+    // Show all in search overlay
+    NinaflixSearch.open();
+    document.getElementById('search-input').placeholder = 'Filter Continue Watching...';
+    document.getElementById('search-results').style.display = 'block';
+    document.getElementById('search-recent').style.display = 'none';
+    document.getElementById('search-count').textContent = `(${progressItems.length})`;
+    document.getElementById('search-result-grid').innerHTML = '<div style="color:var(--t3);">Loading...</div>';
+
+    const items = [];
+    for (const prog of progressItems) {
+      try {
+        const tmdb = await NinaflixTMDB.imdbToTmdb(prog.imdbId);
+        const meta = tmdb ? await NinaflixTMDB.getDetails(tmdb.id, tmdb.type) : null;
+        const name = meta?.title || meta?.name || prog.title || 'Unknown';
+        const poster = meta ? NinaflixTMDB.poster(meta.poster_path) : '';
+        const pct = prog.duration > 0 ? Math.round((prog.position / prog.duration) * 100) : 0;
+        items.push({ id: prog.imdbId, name, poster, year: (prog.updated ? new Date(prog.updated).toLocaleDateString() : ''), type: tmdb?.type || 'movie', pct });
+      } catch { /* skip */ }
+    }
+
+    document.getElementById('search-result-grid').innerHTML = items.map(item => `
+      <div class="card" style="width:100%;" onclick="NinaflixDetail.open('${item.id}', '${item.type}')">
+        <div class="card-glow"></div>
+        <img class="card-poster" src="${item.poster}" alt="${this.escape(item.name)}" onerror="this.style.background='var(--cd)'">
+        <div class="card-progress"><div class="card-progress-fill" style="width:${item.pct}%"></div></div>
+        <div class="card-info">
+          <div class="card-title">${this.escape(item.name)}</div>
+          <div class="card-sub">${item.pct}% watched</div>
+        </div>
+      </div>
+    `).join('');
   },
 
   filterByGenre(genre) {
@@ -378,24 +441,53 @@ const NinaflixUI = {
   },
 
   renderCatalogRow(title, items, type) {
-    // Create section dynamically
     const sec = document.createElement('div');
     sec.className = 'sec';
     sec.innerHTML = `
       <div class="sec-head">
         <h2 class="sec-title">${this.escape(title)}</h2>
-        <a href="#" class="sec-link">See all</a>
+        <a href="#" class="sec-link" data-catalog="${this.escape(title)}" data-type="${type}">See all</a>
       </div>
       <div class="row">
         ${items.slice(0, 12).map(item => this.renderCard(item, type)).join('')}
       </div>
     `;
 
-    // Insert before footer
+    // Wire "See all" link
+    const seeAllLink = sec.querySelector('.sec-link');
+    if (seeAllLink) {
+      seeAllLink.onclick = (e) => {
+        e.preventDefault();
+        this.showFullCatalog(title, items, type);
+      };
+    }
+
     const footer = document.querySelector('footer');
     if (footer) {
       footer.parentNode.insertBefore(sec, footer);
     }
+  },
+
+  showFullCatalog(title, items, type) {
+    NinaflixSearch.open();
+    document.getElementById('search-input').placeholder = `Filter ${title}...`;
+    document.getElementById('search-results').style.display = 'block';
+    document.getElementById('search-recent').style.display = 'none';
+    document.getElementById('search-count').textContent = `(${items.length})`;
+    document.getElementById('search-result-grid').innerHTML = items.map(item => {
+      const id = item.id || '';
+      const name = this.escape(item.name || item.title || 'Unknown');
+      const poster = item.poster || '';
+      const year = item.year || '';
+      return `<div class="card" style="width:100%;" onclick="NinaflixDetail.open('${id}', '${item.type || type || 'movie'}')">
+        <div class="card-glow"></div>
+        <img class="card-poster" src="${poster}" alt="${name}" onerror="this.style.background='var(--cd)'">
+        <div class="card-info">
+          <div class="card-title">${name}</div>
+          <div class="card-sub">${year}</div>
+        </div>
+      </div>`;
+    }).join('');
   },
 
   renderCard(item, type) {

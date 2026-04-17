@@ -116,6 +116,34 @@ const NinaflixAddons = {
     return allStreams;
   },
 
+  async fetchStreamsForSeries(imdbId, season, episode) {
+    const allStreams = [];
+    const seriesId = `${imdbId}:${season}:${episode}`;
+    for (const id of Object.keys(this.manifestCache)) {
+      // Try with episode-specific URL first
+      const manifest = this.manifestCache[id];
+      if (!manifest) continue;
+      const url = (manifest.url || '') + `/stream/series/${imdbId}:${season}:${episode}.json`;
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          for (const s of (data.streams || [])) {
+            s._addonId = id;
+            allStreams.push(s);
+          }
+        }
+      } catch { /* skip */ }
+      // Also try standard series format
+      const stdStreams = await this.fetchStreams(id, 'series', imdbId);
+      for (const s of stdStreams) {
+        s._addonId = id;
+        allStreams.push(s);
+      }
+    }
+    return allStreams;
+  },
+
   getInstalled() {
     return Object.values(this.manifestCache);
   },
