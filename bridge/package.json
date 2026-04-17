@@ -1,0 +1,15 @@
+{
+  "name": "ninaflix-bridge",
+  "version": "1.0.0",
+  "description": "Nuvio provider bridge for Ninaflix — direct streaming links",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js",
+    "deploy-vercel": "vercel --prod"
+  },
+  "dependencies": {
+    "cheerio-without-node-native": "^0.20.2",
+    "crypto-js": "^4.2.0",
+    "express": "^4.18.2"
+  }
+}
