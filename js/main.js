@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   NinaflixDetail.init();
   NinaflixSettings.init();
   NinaflixSearch.init();
+  NinaflixVoice.init();
   NinaflixHUD.init();
   NinaflixPlayer.init();
 
