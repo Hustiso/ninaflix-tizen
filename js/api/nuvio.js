@@ -1,27 +1,15 @@
 // ═══════════════════════════════════════════
-// Ninaflix — Nuvio Provider Bridge
+// Ninaflix — Streaming Bridge Client
 // ═══════════════════════════════════════════
 //
-// Auto-detects streaming provider servers:
-//   1. Ninaflix Bridge (self-hosted or public)
-//   2. Local nuvio-providers server
-//   3. Falls back to Stremio addons only
+// Auto-detects local bridge server on LAN.
+// Bridge runs on user's PC: cd bridge && start-bridge.bat
 //
 
 const NinaflixNuvio = {
-  // Known bridge endpoints — checked at boot
+  // Checked at boot — local bridge first
   SERVERS: [
-    // Deno Deploy (live)
-    'https://ninaflix-tizen-62-wskp6gvf1fcn.hustiso.deno.net',
-    // Deno Deploy (custom domain fallback)
-    'https://ninaflix-bridge.deno.dev',
-    // Vercel (if deployed)
-    'https://ninaflix-bridge.vercel.app',
-    // Render (if deployed)
-    'https://ninaflix-bridge.onrender.com',
-    // Local development
     'http://localhost:3000',
-    'http://localhost:8000',
     'http://127.0.0.1:3000'
   ],
 
@@ -29,11 +17,9 @@ const NinaflixNuvio = {
   providers: [],
 
   async init() {
-    // Check all known servers in parallel with short timeouts
+    // Parallel check all known servers
     const checks = this.SERVERS.map(url =>
-      fetch(url + '/manifest.json', {
-        signal: AbortSignal.timeout(3000)
-      })
+      fetch(url + '/manifest.json', { signal: AbortSignal.timeout(2000) })
         .then(res => res.ok ? res.json().then(data => ({ url, data })) : null)
         .catch(() => null)
     );
@@ -44,10 +30,10 @@ const NinaflixNuvio = {
     if (found) {
       this.activeServer = found.url;
       this.providers = found.data.scrapers || found.data.providers || [];
-      console.log(`[Nuvio] Connected: ${found.url} (${this.providers.length} providers)`);
-      Ninaflix.toast(`Streaming: ${this.providers.length} providers online`);
+      console.log(`[Bridge] Connected: ${found.url} (${this.providers.length} providers)`);
+      Ninaflix.toast(`Bridge: ${this.providers.length} providers online`);
     } else {
-      console.log('[Nuvio] No bridge found — using Stremio addons only');
+      console.log('[Bridge] No local bridge found');
     }
   },
 
@@ -59,19 +45,17 @@ const NinaflixNuvio = {
     if (!this.activeServer) return [];
 
     let url = `${this.activeServer}/stream/${type}/${imdbId}`;
-    if (season && episode) {
-      url += `:${season}:${episode}`;
-    }
+    if (season && episode) url += `:${season}:${episode}`;
     url += '.json';
 
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) return [];
       const data = await res.json();
       return (data.streams || []).map(s => ({
         ...s,
         _addonId: 'bridge',
-        _provider: s.name || s.provider || 'bridge'
+        _provider: s.name || 'bridge'
       }));
     } catch {
       return [];
@@ -80,13 +64,5 @@ const NinaflixNuvio = {
 
   async fetchAllStreams(type, imdbId, season, episode) {
     return this.fetchStreams(type, imdbId, season, episode);
-  },
-
-  getProviderList() {
-    return this.providers.map(p => ({
-      name: p.name,
-      id: p.id,
-      types: p.supportedTypes || p.types || []
-    }));
   }
 };
