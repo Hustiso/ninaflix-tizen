@@ -44,15 +44,14 @@
     </a>
     <div class="nav-links">
       <a href="#" class="on">Home</a>
-      <a href="#">Movies</a>
-      <a href="#">Series</a>
-      <a href="#">My List</a>
-      <a href="#">Search</a>
+      <a href="#" onclick="NinaflixUI.showMyList()">My List</a>
+      <a href="#" onclick="NinaflixSearch.open()">Search</a>
+      <a href="#" onclick="NinaflixSettings.open()">Settings</a>
     </div>
   </div>
   <div class="nav-r">
     <span class="name">nina</span>
-    <img src="assets/nina.png" alt="">
+    <img src="assets/nina.png" alt="" onclick="NinaflixSettings.open()">
   </div>
 </nav>
 
@@ -67,20 +66,20 @@
     <div class="hero-meta" id="hero-meta"></div>
     <p class="hero-desc" id="hero-desc">Discovering the best content for you...</p>
     <div class="hero-actions">
-      <button class="btn btn-play" onclick="NinaflixUI.onPlayHero()">▶ Play</button>
-      <button class="btn btn-info">+ My List</button>
-      <button class="btn btn-info">ℹ Info</button>
+      <button class="btn btn-play" id="hero-play-btn">▶ Play</button>
+      <button class="btn btn-info" id="hero-fav-btn">+ My List</button>
+      <button class="btn btn-info" onclick="NinaflixUI.openHeroDetail()">ℹ Info</button>
       <span class="quality-tag"><span class="dot">●</span> 4K HDR</span>
     </div>
     <div class="hero-status">
       <span class="live"></span>
-      Auto-play verified • Best quality selected
+      <span id="hero-status-text">Auto-play verified • Best quality selected</span>
     </div>
   </div>
 </section>
 
 <!-- CONTINUE WATCHING -->
-<div class="sec" id="section-continue">
+<div class="sec" id="section-continue" style="display:none;">
   <div class="sec-head">
     <h2 class="sec-title">Continue Watching</h2>
     <a href="#" class="sec-link">See all</a>
@@ -90,7 +89,7 @@
 
 <!-- SPOTLIGHT -->
 <div class="spotlight">
-  <div class="spot-card">
+  <div class="spot-card" onclick="NinaflixUI.openRandom()">
     <img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=800&q=80" alt="">
     <div class="spot-overlay">
       <h3>Top Picks For You</h3>
@@ -98,7 +97,7 @@
       <span class="badge badge-new">New</span>
     </div>
   </div>
-  <div class="spot-card">
+  <div class="spot-card" onclick="NinaflixUI.openRandom()">
     <img src="https://images.unsplash.com/photo-1535016120720-40c646be5580?w=800&q=80" alt="">
     <div class="spot-overlay">
       <h3>Trending This Week</h3>
@@ -121,7 +120,7 @@
   <button class="pill">Documentary</button>
 </div>
 
-<!-- DYNAMIC CATALOG ROWS (populated by JS) -->
+<!-- DYNAMIC CATALOG (populated by JS) -->
 <div id="catalog-container"></div>
 
 <footer>
@@ -131,13 +130,21 @@
 
 </div>
 
-<!-- JS Modules -->
+<!-- JS Modules — Order matters -->
 <script src="js/services/storage.js"></script>
 <script src="js/api/addons.js"></script>
+<script src="js/api/tmdb.js"></script>
+<script src="js/api/trakt.js"></script>
 <script src="js/engine/collector.js"></script>
 <script src="js/engine/autodrive.js"></script>
 <script src="js/player/avplay.js"></script>
+<script src="js/player/subtitles.js"></script>
+<script src="js/player/hud.js"></script>
 <script src="js/ui/home.js"></script>
+<script src="js/ui/detail.js"></script>
+<script src="js/ui/search.js"></script>
+<script src="js/ui/settings.js"></script>
+<script src="js/ui/kids.js"></script>
 <script src="js/ui/splash.js"></script>
 <script src="js/main.js"></script>
 

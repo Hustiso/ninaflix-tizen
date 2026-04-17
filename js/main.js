@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════
-// Ninaflix — Main Bootstrap
+// Ninaflix — Main Bootstrap (Full)
 // ═══════════════════════════════════════════
 
 const Ninaflix = {
@@ -9,7 +9,8 @@ const Ninaflix = {
     screen: 'home',
     addons: [],
     catalog: [],
-    playing: false
+    playing: false,
+    currentItem: null
   }
 };
 
@@ -17,14 +18,42 @@ const Ninaflix = {
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[Ninaflix] Booting v' + Ninaflix.version);
 
-  // Init modules
+  // Core services
   await NinaflixStorage.init();
+
+  // Load settings
+  const settings = NinaflixStorage.getSettings();
+
+  // Init TMDB if key available
+  if (settings.tmdb_key) {
+    NinaflixTMDB.init(settings.tmdb_key);
+  }
+
+  // Init Trakt
+  NinaflixTrakt.init();
+
+  // Init Kids Mode
+  NinaflixKids.init();
+
+  // Load addons
   await NinaflixAddons.load();
+
+  // Init auto-play engine
+  await NinaflixAutoPlay.init();
+
+  // Init UI modules
   NinaflixUI.init();
+  NinaflixDetail.init();
+  NinaflixSettings.init();
+  NinaflixSearch.init();
+  NinaflixHUD.init();
+  NinaflixPlayer.init();
+
+  // Start splash
   NinaflixSplash.start();
 
   Ninaflix.ready = true;
-  console.log('[Ninaflix] Ready');
+  console.log('[Ninaflix] Ready — ' + Object.keys(NinaflixAddons.manifestCache).length + ' addons loaded');
 });
 
 window.Ninaflix = Ninaflix;

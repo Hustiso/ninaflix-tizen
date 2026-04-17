@@ -1,0 +1,98 @@
+name: Build Ninaflix .wgt
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install -g tizen-cli || true
+
+      - name: Validate config.xml
+        run: |
+          echo "Validating Tizen app structure..."
+          test -f config.xml || (echo "ERROR: config.xml missing" && exit 1)
+          test -f index.html || (echo "ERROR: index.html missing" && exit 1)
+          echo "✅ App structure valid"
+
+      - name: Minify CSS
+        run: |
+          echo "Minifying CSS..."
+          cat css/variables.css css/base.css css/layout.css css/components.css css/animations.css css/tv.css > css/bundle.css
+          # Simple whitespace removal
+          sed -i 's/  */ /g' css/bundle.css
+          sed -i '/^$/d' css/bundle.css
+          echo "✅ CSS bundled"
+
+      - name: Bundle JS
+        run: |
+          echo "Bundling JS..."
+          cat js/services/storage.js \
+              js/api/addons.js \
+              js/api/tmdb.js \
+              js/api/trakt.js \
+              js/engine/collector.js \
+              js/engine/autodrive.js \
+              js/player/avplay.js \
+              js/player/subtitles.js \
+              js/player/hud.js \
+              js/ui/home.js \
+              js/ui/detail.js \
+              js/ui/search.js \
+              js/ui/settings.js \
+              js/ui/kids.js \
+              js/ui/splash.js \
+              js/main.js > js/bundle.js
+          echo "✅ JS bundled"
+
+      - name: Package .wgt
+        run: |
+          echo "Packaging Tizen widget..."
+          mkdir -p dist
+          
+          # Create wgt (zip with config.xml + all assets)
+          cd dist
+          cp ../config.xml .
+          cp ../index.html .
+          cp -r ../css .
+          cp -r ../js .
+          cp -r ../assets .
+          
+          # Remove source maps, test files, etc.
+          find . -name "*.map" -delete
+          find . -name "*.test.*" -delete
+          
+          # Package as .wgt
+          zip -r Ninaflix.wgt . -x "*.git*"
+          
+          SIZE=$(du -sh Ninaflix.wgt | cut -f1)
+          echo "✅ Packaged: Ninaflix.wgt ($SIZE)"
+          ls -la Ninaflix.wgt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ninaflix-tizen-wgt
+          path: dist/Ninaflix.wgt
+          retention-days: 30
+
+      - name: Create Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Ninaflix.wgt
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
