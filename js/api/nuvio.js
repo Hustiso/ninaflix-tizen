@@ -11,16 +11,19 @@
 const NinaflixNuvio = {
   // Known bridge endpoints — checked at boot
   SERVERS: [
-    // Public Ninaflix Bridge (if deployed)
+    // Deno Deploy (free, no card)
+    'https://ninaflix-bridge.deno.dev',
+    // Vercel (if deployed)
     'https://ninaflix-bridge.vercel.app',
+    // Render (if deployed)
+    'https://ninaflix-bridge.onrender.com',
     // Local development
     'http://localhost:3000',
+    'http://localhost:8000',
     'http://127.0.0.1:3000',
     // Common LAN addresses
     'http://192.168.1.5:3000',
-    'http://192.168.1.100:3000',
-    'http://10.0.0.5:3000',
-    'http://10.0.0.100:3000'
+    'http://192.168.1.100:3000'
   ],
 
   activeServer: null,
