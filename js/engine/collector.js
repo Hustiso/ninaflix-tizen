@@ -6,9 +6,26 @@ const NinaflixEngine = {
 
   lastRanked: [], // Store last ranked list for player fallback
   
-  // Collect streams from all addons, filter direct only
+  // Collect streams from all addons, merge with nuvio if available
   async collect(type, imdbId) {
+    // Stremio addon streams
     const raw = await NinaflixAddons.fetchAllStreams(type, imdbId);
+
+    // Nuvio provider streams (if server is running)
+    if (NinaflixNuvio.isConnected()) {
+      // Parse season:episode from imdbId if series
+      let season, episode, cleanId = imdbId;
+      if (type === 'series' && imdbId.includes(':')) {
+        const parts = imdbId.split(':');
+        cleanId = parts[0];
+        season = parseInt(parts[1]);
+        episode = parseInt(parts[2]);
+      }
+      const nuvioStreams = await NinaflixNuvio.fetchAllStreams(type, cleanId, season, episode);
+      raw.push(...nuvioStreams);
+      console.log(`[Engine] Nuvio returned ${nuvioStreams.length} streams`);
+    }
+
     const direct = raw.filter(s => this.isDirect(s));
     console.log(`[Engine] ${raw.length} total, ${direct.length} direct streams`);
     return direct;

@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load addons
   await NinaflixAddons.load();
 
+  // Detect nuvio providers server (optional, non-blocking)
+  NinaflixNuvio.init().catch(() => {});
+
   // Init auto-play engine
   await NinaflixAutoPlay.init();
 
